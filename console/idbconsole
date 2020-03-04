@@ -1,0 +1,99 @@
+#!/usr/bin/env php
+<?php
+# * ********************************************************************* *
+# *                                                                       *
+# *   PHP IDB console tools                                               *
+# *   This file is part of idbconsole. This project may be found at:      *
+# *   https://github.com/IdentityBank/Php_idbconsole.                     *
+# *                                                                       *
+# *   Copyright (C) 2020 by Identity Bank. All Rights Reserved.           *
+# *   https://www.identitybank.eu - You belong to you                     *
+# *                                                                       *
+# *   This program is free software: you can redistribute it and/or       *
+# *   modify it under the terms of the GNU Affero General Public          *
+# *   License as published by the Free Software Foundation, either        *
+# *   version 3 of the License, or (at your option) any later version.    *
+# *                                                                       *
+# *   This program is distributed in the hope that it will be useful,     *
+# *   but WITHOUT ANY WARRANTY; without even the implied warranty of      *
+# *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the        *
+# *   GNU Affero General Public License for more details.                 *
+# *                                                                       *
+# *   You should have received a copy of the GNU Affero General Public    *
+# *   License along with this program. If not, see                        *
+# *   https://www.gnu.org/licenses/.                                      *
+# *                                                                       *
+# * ********************************************************************* *
+
+################################################################################
+# Location(s)                                                                  #
+################################################################################
+
+define('YII_VERSION', 'idb');
+$dirname = dirname(__FILE__);
+$dirConfig = $dirname . '/../config';
+define('YII_DIR_CONFIG', $dirConfig);
+$dirHelpers = $dirname . '/../helpers';
+$yii = '3rdparty/yii2/yii-advanced-app-' . YII_VERSION;
+define('YII_P57B_BUSINESS_DIR_CONFIG', 'business/config');
+define('YII_P57B_PEOPLE_DIR_CONFIG', 'people/config');
+define('YII_P57B_BILLING_DIR_CONFIG', 'billingportal/config');
+
+################################################################################
+# Include(s)                                                                   #
+################################################################################
+
+require_once($dirHelpers . '/BusinessConfig.php');
+require_once($dirHelpers . '/PeopleConfig.php');
+require_once($dirHelpers . '/BillingConfig.php');
+require_once('idbyii2/helpers/IdbSecurity.php');
+
+################################################################################
+# Use(s)                                                                       #
+################################################################################
+
+use app\helpers\BusinessConfig;
+use idbyii2\helpers\IdbSecurity;
+
+################################################################################
+# Yii Application Config                                                       #
+################################################################################
+
+// DEBUG mode
+if (BusinessConfig::get()->isDebug()) {
+    defined('YII_DEBUG') or define('YII_DEBUG', true);
+    defined('YII_ENV') or define('YII_ENV', 'dev');
+} else {
+    defined('YII_DEBUG') or define('YII_DEBUG', false);
+    defined('YII_ENV') or define('YII_ENV', 'prod');
+}
+
+defined('STDIN') or define('STDIN', fopen('php://stdin', 'r'));
+defined('STDOUT') or define('STDOUT', fopen('php://stdout', 'w'));
+
+require($yii . '/vendor/autoload.php');
+require($yii . '/vendor/yiisoft/yii2/Yii.php');
+
+$config = yii\helpers\ArrayHelper::merge
+(
+    require($dirConfig . '/console.php'),
+    []
+);
+
+################################################################################
+# Application settings                                                         #
+################################################################################
+
+IdbSecurity::$magic_shift_value = BusinessConfig::get()->getYii2IdbSecurityMagicShift();
+
+################################################################################
+# Start Yii Application                                                        #
+################################################################################
+
+$application = new yii\console\Application($config);
+$exitCode = $application->run();
+exit($exitCode);
+
+################################################################################
+#                                End of file                                   #
+################################################################################
